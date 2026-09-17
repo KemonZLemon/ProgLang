@@ -1,0 +1,8 @@
+f
+\x.(x x)
+\z.f
+g
+\x.((f x) x)
+f
+\x.x
+final
