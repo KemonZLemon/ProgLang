@@ -25,7 +25,7 @@ id' lexp@(Apply _ _) = lexp
 -- return whatever it was given, of course!
 
 reducer :: Lexp -> Lexp
-reducer lexp = fullEtaReduce lexp
+reducer lexp = fullEtaReduce (betaReduce lexp)
 
 --Checks if the variable is free
 freeVar :: String -> Lexp -> Bool
@@ -52,6 +52,62 @@ fullEtaReduce exp
     |otherwise = fullEtaReduce next
     where
         next = etaReduce exp
+
+--substitute function
+substitute :: String -> Lexp -> Lexp -> Lexp
+substitute var replace (Atom name)
+    |var == name = replace
+    |otherwise = Atom name
+substitute var replace (Lambda bound body)
+    |var == bound = Lambda bound body
+    |not (freeVar bound replace) =
+        Lambda bound (substitute var replace body)
+    | otherwise =
+         let used = allVars body ++ allVars replace ++ [var, bound]
+             fresh = freshVar used
+             renamedBody = alphaRename bound fresh body
+         in Lambda fresh (substitute var replace renamedBody)
+substitute var replace(Apply exp1 exp2) =
+    Apply (substitute var replace exp1)
+          (substitute var replace exp2)
+
+--function that gets every used variable
+allVars :: Lexp -> [String]
+allVars (Atom name) = [name]
+allVars (Lambda bound body) = bound : allVars body
+allVars (Apply left right) =
+    allVars left ++ allVars right
+
+--fresh name generator
+freshVar :: [String] -> String
+freshVar used = findFresh 0
+    where
+        findFresh n
+            | candidate `notElem` used = candidate
+            | otherwise = findFresh (n + 1)
+            where
+                candidate = "v" ++ show n
+
+alphaRename :: String -> String -> Lexp -> Lexp
+alphaRename old new (Atom name)
+    | name == old = Atom new
+    | otherwise   = Atom name
+alphaRename old new (Apply exp1 exp2) =
+    Apply (alphaRename old new exp1)
+          (alphaRename old new exp2)
+alphaRename old new lexp@(Lambda bound body)
+    |bound == old = lexp
+    |otherwise = Lambda bound (alphaRename old new body)
+
+--Beta reducer
+betaReduce :: Lexp -> Lexp
+betaReduce (Atom v) = Atom v
+betaReduce (Lambda v e) = Lambda v (betaReduce e)
+betaReduce (Apply (Lambda v body) arg) = betaReduce (substitute v arg body)
+betaReduce (Apply e1 e2) = combine (betaReduce e1) e2
+  where
+    combine (Lambda v body) arg = betaReduce (substitute v arg body)
+    combine other arg = Apply other (betaReduce arg)
 
 -- Entry point of program
 main = do

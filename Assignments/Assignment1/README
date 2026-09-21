@@ -1,0 +1,14 @@
+Programming Assignment 1
+
+## Group Members
+
+Kevin Zhu
+Ryan Wang
+
+Implemented Features
+
+- Normal-order (call-by-name) beta reduction.
+- Capture-avoiding substitution with alpha-renaming.
+- Eta reduction after beta reduction is complete.
+- Fresh variable generation using valid lowercase alphanumeric names.
+
