@@ -58,7 +58,7 @@ run(N, ScriptFile, OutputFile, LocationsFile) ->
 %% one Coordinator process and Erlang keeps the order of messages between two
 %% processes, the Coordinator sees the commands in script order.
 run_commands([], _InputDirectory, _Coordinator, _OutputFile,
-             AnalysisCount, Results) ->
+    AnalysisCount, Results) ->
     {AnalysisCount, Results};
 run_commands(
     [[<<"a">>, FileName, Keyword] | Rest],
@@ -93,7 +93,7 @@ run_commands(
         AnalysisCount, NewResults
     );
 run_commands([Invalid | _], _InputDirectory, _Coordinator, _OutputFile,
-             _Count, _Results) ->
+    _Count, _Results) ->
     erlang:error({invalid_command, Invalid}).
 
 %% Barrier: wait for the acknowledgement of this deactivation. Results of
@@ -127,7 +127,7 @@ take_available_results(Coordinator, OutputFile, Results) ->
 %% After the last command: receive until there is one result for every
 %% Analyze command, in whatever order they finish.
 collect_results(_Coordinator, _OutputFile, AnalysisCount, Results)
-        when map_size(Results) >= AnalysisCount ->
+    when map_size(Results) >= AnalysisCount ->
     Results;
 collect_results(Coordinator, OutputFile, AnalysisCount, Results) ->
     receive
